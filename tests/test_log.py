@@ -1,27 +1,25 @@
 import structlog
 
 
-logger = structlog.get_logger('test')
-
-
-# pytest_plugins = ["pytester"]
+logger = structlog.get_logger("test")
 
 
 def spline_reticulator():
-    logger.info('reticulating splines', n_splines=123)
+    logger.info("reticulating splines", n_splines=123)
 
 
 def main_ish():
-    structlog.configure(processors=[])  # this should be no-op when the fixture is injected
-    logger.debug('yo')
+    structlog.configure(processors=[])
+    # this configure call should be a no-op after fixture was injected
+    logger.debug("yo")
 
 
 def binding():
-    log = logger.bind(k='v')
-    log.debug('dbg')
-    log.info('inf', kk='more context')
-    log = log.unbind('k')
-    log.warning('uh-oh')
+    log = logger.bind(k="v")
+    log.debug("dbg")
+    log.info("inf", kk="more context")
+    log = log.unbind("k")
+    log.warning("uh-oh")
 
 
 def test_capture_creates_items(log):
@@ -32,38 +30,38 @@ def test_capture_creates_items(log):
 
 def test_assert_without_context(log):
     spline_reticulator()
-    assert log.had('reticulating splines')
+    assert log.has("reticulating splines")
 
 
 def test_assert_with_subcontext(log):
     spline_reticulator()
-    assert log.had('reticulating splines', n_splines=123)
+    assert log.has("reticulating splines", n_splines=123)
 
 
 def test_assert_with_bogus_context(log):
     spline_reticulator()
-    assert not log.had('reticulating splines', n_splines=0)
+    assert not log.has("reticulating splines", n_splines=0)
 
 
 def test_assert_with_all_context(log):
     spline_reticulator()
-    assert log.had('reticulating splines', n_splines=123, level='info')
+    assert log.has("reticulating splines", n_splines=123, level="info")
 
 
 def test_assert_with_super_context(log):
     spline_reticulator()
-    assert not log.had('reticulating splines', n_splines=123, level='info', k='v')
+    assert not log.has("reticulating splines", n_splines=123, level="info", k="v")
 
 
 def test_configurator(log):
     main_ish()
-    assert log.had('yo', level='debug')
+    assert log.has("yo", level="debug")
 
 
 def test_multiple_events(log):
     binding()
-    assert log.had('dbg', k='v', level='debug')
-    assert log.had('inf', k='v', kk='more context', level='info')
+    assert log.has("dbg", k="v", level="debug")
+    assert log.has("inf", k="v", kk="more context", level="info")
 
 
 def test_length(log):
@@ -72,9 +70,9 @@ def test_length(log):
 
 
 d0, d1, d2 = [
-    {'event': 'dbg', 'k': 'v', 'level': 'debug'},
-    {'event': 'inf', 'k': 'v', 'level': 'info', 'kk': 'more context'},
-    {'event': 'uh-oh', 'level': 'warning'},
+    {"event": "dbg", "k": "v", "level": "debug"},
+    {"event": "inf", "k": "v", "level": "info", "kk": "more context"},
+    {"event": "uh-oh", "level": "warning"},
 ]
 
 
@@ -123,3 +121,22 @@ def test_total_ordering(log):
     assert log.events <= [d0, d1, d2, {}]
     assert log.events < [d0, d1, d2, {}]
     assert log.events > [d0, d1]
+
+
+def test_dupes(log):
+    logger.x("a")
+    logger.x("a")
+    logger.x("b")
+    assert log.events >= [{"event": "a", "level": "x"}]
+    assert log.events >= [{"event": "a", "level": "x"}, {"event": "b", "level": "x"}]
+    assert log.events >= [
+        {"event": "a", "level": "x"},
+        {"event": "a", "level": "x"},
+        {"event": "b", "level": "x"},
+    ]
+    assert not log.events >= [
+        {"event": "a", "level": "x"},
+        {"event": "a", "level": "x"},
+        {"event": "a", "level": "x"},
+        {"event": "b", "level": "x"},
+    ]
