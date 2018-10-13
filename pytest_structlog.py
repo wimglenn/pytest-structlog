@@ -22,10 +22,6 @@ class EventList(list):
     def __lt__(self, other):
         return len(self) < len(other) and is_subseq(self, other)
 
-    def has(self, message, **context):
-        context["event"] = message
-        return any(is_submap(context, e) for e in self)
-
 
 absent = object()
 
@@ -50,8 +46,9 @@ class StructuredLogCapture(object):
         self.events.append(event_dict)
         raise structlog.DropEvent
 
-    def had(self, message, **context):
-        return self.events.has(message, **context)
+    def has(self, message, **context):
+        context["event"] = message
+        return any(is_submap(context, e) for e in self.events)
 
 
 def no_op(*args, **kwargs):
