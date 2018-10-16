@@ -40,7 +40,7 @@ Suppose you have some library module, ``your_lib``, which is using ``structlog``
    # your_lib.py
    from structlog import get_logger
 
-   logger = get_logger(__name__)
+   logger = get_logger()
 
    def spline_reticulator():
        logger.info("reticulating splines")
