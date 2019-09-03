@@ -50,6 +50,9 @@ class StructuredLogCapture(object):
         context["event"] = message
         return any(is_submap(context, e) for e in self.events)
 
+    def contains(self, needle):
+        return any(needle in e['event'] for e in self.events)
+
 
 def no_op(*args, **kwargs):
     pass
