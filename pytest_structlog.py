@@ -57,8 +57,16 @@ def no_op(*args, **kwargs):
 
 @pytest.fixture
 def log(monkeypatch):
+    # save settings for later
+    processors = structlog.get_config().get('processors', [])
+    configure = structlog.configure
+
+    # redirect logging to log capture
     cap = StructuredLogCapture()
     structlog.configure(processors=[cap.process])
     monkeypatch.setattr("structlog.configure", no_op)
     monkeypatch.setattr("structlog.configure_once", no_op)
-    return cap
+    yield cap
+
+    # back to normal behavior
+    configure(processors=processors)
