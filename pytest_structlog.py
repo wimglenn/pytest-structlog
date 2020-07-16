@@ -2,7 +2,7 @@ import pytest
 import structlog
 
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 
 class EventList(list):
@@ -73,6 +73,7 @@ def log(monkeypatch):
 
     # redirect logging to log capture
     cap = StructuredLogCapture()
+    structlog.reset_defaults()
     structlog.configure(processors=[cap.process])
     monkeypatch.setattr("structlog.configure", no_op)
     monkeypatch.setattr("structlog.configure_once", no_op)
