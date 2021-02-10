@@ -124,19 +124,19 @@ def test_total_ordering(log):
 
 
 def test_dupes(log):
-    logger.x("a")
-    logger.x("a")
-    logger.x("b")
-    assert log.events >= [{"event": "a", "level": "x"}]
-    assert log.events >= [{"event": "a", "level": "x"}, {"event": "b", "level": "x"}]
+    logger.info("a")
+    logger.info("a")
+    logger.info("b")
+    assert log.events >= [{"event": "a", "level": "info"}]
+    assert log.events >= [{"event": "a", "level": "info"}, {"event": "b", "level": "info"}]
     assert log.events >= [
-        {"event": "a", "level": "x"},
-        {"event": "a", "level": "x"},
-        {"event": "b", "level": "x"},
+        {"event": "a", "level": "info"},
+        {"event": "a", "level": "info"},
+        {"event": "b", "level": "info"},
     ]
     assert not log.events >= [
-        {"event": "a", "level": "x"},
-        {"event": "a", "level": "x"},
-        {"event": "a", "level": "x"},
-        {"event": "b", "level": "x"},
+        {"event": "a", "level": "info"},
+        {"event": "a", "level": "info"},
+        {"event": "a", "level": "info"},
+        {"event": "b", "level": "info"},
     ]
