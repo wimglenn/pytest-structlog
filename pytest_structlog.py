@@ -53,6 +53,9 @@ class StructuredLogCapture(object):
         context["event"] = message
         return any(is_submap(context, e) for e in self.events)
 
+    def __repr__(self):
+        return "<StructuredLogCapture with %r>" % (self.events)
+
 
 def no_op(*args, **kwargs):
     pass

@@ -140,3 +140,8 @@ def test_dupes(log):
         {"event": "a", "level": "info"},
         {"event": "b", "level": "info"},
     ]
+
+def test_structuredlogcapture_returns_correct_representation(log):
+    logger.info("a")
+
+    assert repr(log) == "<StructuredLogCapture with [{'event': 'a', 'level': 'info'}]>"
