@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pytest-structlog",
-    version="0.3",
+    version="0.4",
     url="https://github.com/wimglenn/pytest-structlog",
     description="Structured logging assertions",
     long_description=open("README.rst").read(),

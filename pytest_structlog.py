@@ -1,8 +1,9 @@
+import os
 import pytest
 import structlog
 
 
-__version__ = "0.3"
+__version__ = "0.4"
 
 
 class EventList(list):
@@ -59,7 +60,7 @@ def no_op(*args, **kwargs):
 
 
 @pytest.fixture
-def log(monkeypatch):
+def log(monkeypatch, request):
     """Fixture providing access to captured structlog events. Interesting attributes:
 
         ``log.events`` a list of dicts, contains any events logged during the test
@@ -73,11 +74,19 @@ def log(monkeypatch):
 
     # redirect logging to log capture
     cap = StructuredLogCapture()
-    structlog.reset_defaults()
-    structlog.configure(processors=[cap.process])
+    structlog.configure(processors=[cap.process], cache_logger_on_first_use=False)
     monkeypatch.setattr("structlog.configure", no_op)
     monkeypatch.setattr("structlog.configure_once", no_op)
+    request.node.structlog_events = cap.events
     yield cap
 
     # back to normal behavior
     configure(processors=processors)
+
+
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_call(item):
+    yield
+    events = getattr(item, "structlog_events", [])
+    content = os.linesep.join([str(e) for e in events])
+    item.add_report_section("call", "structlog", content)
