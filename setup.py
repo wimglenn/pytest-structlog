@@ -19,4 +19,5 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
     ],
+    options={"bdist_wheel": {"universal": "1"}},
 )
