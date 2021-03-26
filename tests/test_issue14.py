@@ -1,7 +1,7 @@
 import structlog
 
 
-logger: structlog.stdlib.BoundLogger = structlog.get_logger("some logger")
+logger = structlog.get_logger("some logger")
 
 
 def test_first():
