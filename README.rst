@@ -1,7 +1,7 @@
-|travis|_ |pypi|_ |pyversions|_ |womm|_
+|actions|_ |pypi|_ |pyversions|_ |womm|_
 
-.. |travis| image:: https://travis-ci.com/wimglenn/pytest-structlog.svg?branch=master
-.. _travis: https://travis-ci.com/wimglenn/pytest-structlog
+.. |actions| image:: https://github.com/wimglenn/pytest-structlog/actions/workflows/tests.yml/badge.svg
+.. _actions: https://github.com/wimglenn/pytest-structlog/actions/workflows/tests.yml/
 
 .. |pypi| image:: https://img.shields.io/pypi/v/pytest-structlog.svg
 .. _pypi: https://pypi.org/project/pytest-structlog
