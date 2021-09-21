@@ -3,7 +3,7 @@ import pytest
 import structlog
 
 
-__version__ = "0.4"
+__version__ = "0.5"
 
 
 class EventList(list):
@@ -69,19 +69,28 @@ def log(monkeypatch, request):
     Example usage: ``assert log.has("some message", var1="extra context")``
     """
     # save settings for later
-    processors = structlog.get_config().get("processors", [])
-    configure = structlog.configure
+    original_processors = structlog.get_config().get("processors", [])
 
     # redirect logging to log capture
     cap = StructuredLogCapture()
-    structlog.configure(processors=[cap.process], cache_logger_on_first_use=False)
+    for processor in original_processors:
+        if isinstance(processor, structlog.stdlib.PositionalArgumentsFormatter):
+            # if there was a positional argument formatter in there, keep it there
+            # see https://github.com/wimglenn/pytest-structlog/issues/18
+            new_processors = [processor, cap.process]
+            break
+    else:
+        new_processors = [cap.process]
+    structlog.configure(processors=new_processors, cache_logger_on_first_use=False)
+    cap.original_configure = configure = structlog.configure
+    cap.configure_once = structlog.configure_once
     monkeypatch.setattr("structlog.configure", no_op)
     monkeypatch.setattr("structlog.configure_once", no_op)
     request.node.structlog_events = cap.events
     yield cap
 
-    # back to normal behavior
-    configure(processors=processors)
+    # back to original behavior
+    configure(processors=original_processors)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
