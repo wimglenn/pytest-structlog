@@ -7,6 +7,7 @@ logger = structlog.get_logger()
 
 @pytest.fixture
 def issue20_setup():
+    pytest.importorskip("structlog.contextvars")
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
