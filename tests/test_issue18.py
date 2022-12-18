@@ -21,7 +21,6 @@ def stdlib_configure():
         ],
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
-        context_class=structlog.threadlocal.wrap_dict(dict),
     )
 
 
