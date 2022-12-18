@@ -2,8 +2,15 @@ import os
 import pytest
 import structlog
 
+try:
+    from structlog.contextvars import merge_contextvars
+except ImportError:
+    # structolg < 20.1.0
+    # use a "missing" sentinel to avoid a NameError later on
+    merge_contextvars = object()
 
-__version__ = "0.5"
+
+__version__ = "0.6"
 
 
 class EventList(list):
@@ -73,14 +80,17 @@ def log(monkeypatch, request):
 
     # redirect logging to log capture
     cap = StructuredLogCapture()
+    new_processors = []
     for processor in original_processors:
         if isinstance(processor, structlog.stdlib.PositionalArgumentsFormatter):
             # if there was a positional argument formatter in there, keep it there
             # see https://github.com/wimglenn/pytest-structlog/issues/18
-            new_processors = [processor, cap.process]
-            break
-    else:
-        new_processors = [cap.process]
+            new_processors.append(processor)
+        elif processor is merge_contextvars:
+            # if merging contextvars, preserve
+            # see https://github.com/wimglenn/pytest-structlog/issues/20
+            new_processors.append(processor)
+    new_processors.append(cap.process)
     structlog.configure(processors=new_processors, cache_logger_on_first_use=False)
     cap.original_configure = configure = structlog.configure
     cap.configure_once = structlog.configure_once
