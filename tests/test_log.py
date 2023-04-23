@@ -1,3 +1,6 @@
+import logging
+
+import pytest
 import structlog
 
 
@@ -140,3 +143,35 @@ def test_dupes(log):
         {"event": "a", "level": "info"},
         {"event": "b", "level": "info"},
     ]
+
+
+def test_event_factories(log):
+    assert log.debug("debug-level", extra=True) == {"event": "debug-level", "level": "debug", "extra": True}
+    assert log.info("info-level", more="yes") == {"event": "info-level", "level": "info", "more": "yes"}
+    assert log.warning("warning-level", another=42) == {"event": "warning-level", "level": "warning", "another": 42}
+    assert log.error("error-level", added=1) == {"event": "error-level", "level": "error", "added": 1}
+    assert log.critical("crit-level", above="beyond") == {"event": "crit-level", "level": "critical", "above": "beyond"}
+
+
+@pytest.mark.parametrize(
+    "level, name",
+    [
+        (logging.DEBUG, "debug"),
+        (logging.INFO, "info"),
+        (logging.WARNING, "warning"),
+        (logging.ERROR, "error"),
+        (logging.CRITICAL, "critical"),
+    ],
+)
+def test_dynamic_event_factory(log, level, name):
+    expected = {"event": "dynamic-level", "level": name, "other": 42}
+
+    assert log.log(level, "dynamic-level", other=42) == expected
+    assert log.log(name, "dynamic-level", other=42) == expected
+    assert log.log(name.upper(), "dynamic-level", other=42) == expected
+
+
+def test_event_factory__bad_level(log):
+    with pytest.raises(ValueError) as exi:
+        log.log(1234, "text")
+    assert str(exi.value) == "Unknown level number 1234"

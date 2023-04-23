@@ -1,3 +1,4 @@
+import logging
 import os
 
 import pytest
@@ -40,6 +41,17 @@ class EventList(list):
 absent = object()
 
 
+def level_to_name(level):
+    """Given the name or number for a log-leve, return the
+    lower-case level name."""
+    if isinstance(level, str):
+        return level.lower()
+    try:
+        return logging._levelToName[level].lower()
+    except KeyError:
+        raise ValueError("Unknown level number " + str(level))
+
+
 def is_submap(d1, d2):
     """is every pair from d1 also in d2? (unique and order insensitive)"""
     return all(d2.get(k, absent) == v for k, v in d1.items())
@@ -63,6 +75,30 @@ class StructuredLogCapture(object):
     def has(self, message, **context):
         context["event"] = message
         return any(is_submap(context, e) for e in self.events)
+
+    def log(self, level, event, **kw):
+        """Create log event to assert against"""
+        return {"level": level_to_name(level), "event": event, **kw}
+
+    def debug(self, event, **kw):
+        """Create debug-level log event to assert against"""
+        return self.log(logging.DEBUG, event, **kw)
+
+    def info(self, event, **kw):
+        """Create info-level log event to assert against"""
+        return self.log(logging.INFO, event, **kw)
+
+    def warning(self, event, **kw):
+        """Create warning-level log event to assert against"""
+        return self.log(logging.WARNING, event, **kw)
+
+    def error(self, event, **kw):
+        """Create error-level log event to assert against"""
+        return self.log(logging.ERROR, event, **kw)
+
+    def critical(self, event, **kw):
+        """Create critical-level log event to assert against"""
+        return self.log(logging.CRITICAL, event, **kw)
 
 
 def no_op(*args, **kwargs):

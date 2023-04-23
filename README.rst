@@ -81,6 +81,15 @@ Then your test suite might use assertions such as shown below:
            {"event": "processing", "level": "debug", "spline": 2},
            {"event": "reticulated splines", "level": "info", "n_splines": 3},
        ]
+       
+       # can use friendly factory methods for the events to assert on
+       assert log.events == [
+           log.info("reticulating splines"},
+           log.debug("processing", spline=0},
+           log.debug("processing", spline=1},
+           log.debug("processing", spline=2},
+           log.info("reticulated splines", n_splines=3},
+       ]
 
        # can use membership to check for a single event's data
        assert {"event": "reticulating splines", "level": "info"} in log.events
