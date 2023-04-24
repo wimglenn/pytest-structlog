@@ -42,8 +42,7 @@ absent = object()
 
 
 def level_to_name(level):
-    """Given the name or number for a log-leve, return the
-    lower-case level name."""
+    """Given the name or number for a log-level, return the lower-case level name."""
     if isinstance(level, str):
         return level.lower()
     try:
