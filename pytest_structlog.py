@@ -45,10 +45,7 @@ def level_to_name(level):
     """Given the name or number for a log-level, return the lower-case level name."""
     if isinstance(level, str):
         return level.lower()
-    try:
-        return logging.getLevelName(level).lower()
-    except KeyError:
-        raise ValueError("Unknown level number " + str(level))
+    return logging.getLevelName(level).lower()
 
 
 def is_submap(d1, d2):
