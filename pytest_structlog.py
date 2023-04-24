@@ -77,7 +77,9 @@ class StructuredLogCapture(object):
 
     def log(self, level, event, **kw):
         """Create log event to assert against"""
-        return {"level": level_to_name(level), "event": event, **kw}
+        result = {"level": level_to_name(level), "event": event}
+        result.update(kw)
+        return result
 
     def debug(self, event, **kw):
         """Create debug-level log event to assert against"""
