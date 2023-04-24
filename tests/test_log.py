@@ -171,7 +171,5 @@ def test_dynamic_event_factory(log, level, name):
     assert log.log(name.upper(), "dynamic-level", other=42) == expected
 
 
-def test_event_factory__bad_level(log):
-    with pytest.raises(ValueError) as exi:
-        log.log(1234, "text")
-    assert str(exi.value) == "Unknown level number 1234"
+def test_event_factory__bad_level_number(log):
+    assert log.log(1234, "text") == {'event': 'text', 'level': 'level 1234'}

@@ -46,7 +46,7 @@ def level_to_name(level):
     if isinstance(level, str):
         return level.lower()
     try:
-        return logging._levelToName[level].lower()
+        return logging.getLevelName(level).lower()
     except KeyError:
         raise ValueError("Unknown level number " + str(level))
 
@@ -77,9 +77,7 @@ class StructuredLogCapture(object):
 
     def log(self, level, event, **kw):
         """Create log event to assert against"""
-        result = {"level": level_to_name(level), "event": event}
-        result.update(kw)
-        return result
+        return dict(level=level_to_name(level), event=event, **kw)
 
     def debug(self, event, **kw):
         """Create debug-level log event to assert against"""
