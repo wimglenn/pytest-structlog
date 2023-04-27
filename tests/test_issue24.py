@@ -28,7 +28,7 @@ def test_contextvar_isolation_in_events(issue24_setup, log, n):
     structlog.contextvars.bind_contextvars(ctx=n)
     logger.info("with_context")
     assert log.events == [
-        {"event": "without_context", "level": "info"},
+        {"event": "without_context", "level": "info"},  # in issue 24 this has "ctx" from previous run
         {"event": "with_context", "level": "info", "ctx": n},
     ]
     assert structlog.contextvars.get_contextvars() == {"ctx": n}
