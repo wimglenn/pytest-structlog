@@ -10,7 +10,7 @@ except ImportError:
     # structlog < 20.1.0
     # use a "missing" sentinel to avoid a NameError later on
     merge_contextvars = object()
-    clear_contextvars = lambda *a, **kw: None
+    clear_contextvars = lambda *a, **kw: None  # noqa
 
 
 __version__ = "0.6"

@@ -18,7 +18,7 @@ def issue24_setup():
 # Make sure that at least one process runs the test at least twice
 try:
     RUN_COUNT = int(os.environ.get("PYTEST_XDIST_WORKER_COUNT", 1)) + 1
-except:
+except Exception:
     RUN_COUNT = 2
 
 
