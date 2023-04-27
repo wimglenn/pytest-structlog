@@ -1,13 +1,16 @@
 import os
+
 import pytest
 import structlog
 
 try:
     from structlog.contextvars import merge_contextvars
+    from structlog.contextvars import clear_contextvars
 except ImportError:
-    # structolg < 20.1.0
+    # structlog < 20.1.0
     # use a "missing" sentinel to avoid a NameError later on
     merge_contextvars = object()
+    clear_contextvars = lambda *a, **kw: None  # noqa
 
 
 __version__ = "0.6"
@@ -97,7 +100,9 @@ def log(monkeypatch, request):
     monkeypatch.setattr("structlog.configure", no_op)
     monkeypatch.setattr("structlog.configure_once", no_op)
     request.node.structlog_events = cap.events
+    clear_contextvars()
     yield cap
+    clear_contextvars()
 
     # back to original behavior
     configure(processors=original_processors)
