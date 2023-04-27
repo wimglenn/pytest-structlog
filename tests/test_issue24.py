@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 @pytest.fixture(scope="module")
 def issue24_setup():
-    """Isolate this module's contextvars from other tests, even while issue 20 is present"""
+    """Isolate this module's contextvars from other tests, even while issue 24 is present"""
     pytest.importorskip("structlog.contextvars")
     structlog.contextvars.clear_contextvars()
     yield
