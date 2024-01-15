@@ -39,6 +39,7 @@ def test_assert_without_context(log):
 def test_assert_with_subcontext(log):
     spline_reticulator()
     assert log.has("reticulating splines", n_splines=123)
+    assert log.has("reticulating splines", logger="test")
 
 
 def test_assert_with_bogus_context(log):
