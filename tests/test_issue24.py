@@ -3,6 +3,8 @@ import os
 import pytest
 import structlog
 
+import pytest_structlog
+
 logger = structlog.get_logger()
 
 
@@ -23,7 +25,7 @@ except Exception:
 
 
 @pytest.mark.parametrize("n", list(range(RUN_COUNT)))
-def test_contextvar_isolation_in_events(issue24_setup, log, n):
+def test_contextvar_isolation_in_events(issue24_setup, log: pytest_structlog.StructuredLogCapture, n):
     logger.info("without_context")
     structlog.contextvars.bind_contextvars(ctx=n)
     logger.info("with_context")

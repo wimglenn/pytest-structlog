@@ -1,6 +1,8 @@
 import pytest
 import structlog
 
+import pytest_structlog
+
 
 logger = structlog.get_logger()
 
@@ -22,7 +24,7 @@ def issue20_setup():
     structlog.contextvars.clear_contextvars()
 
 
-def test_contextvar(issue20_setup, log):
+def test_contextvar(issue20_setup, log: pytest_structlog.StructuredLogCapture):
     structlog.contextvars.clear_contextvars()
     logger.info("log1", log1var="value")
     structlog.contextvars.bind_contextvars(contextvar="cv")

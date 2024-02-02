@@ -74,27 +74,27 @@ class StructuredLogCapture(object):
         context["event"] = message
         return any(is_submap(context, e) for e in self.events)
 
-    def log(self, level: Union[int, str], event: dict, **kw: Any) -> dict:
+    def log(self, level: Union[int, str], event: str, **kw: Any) -> dict:
         """Create log event to assert against"""
         return dict(level=level_to_name(level), event=event, **kw)
 
-    def debug(self, event: dict, **kw: Any) -> dict:
+    def debug(self, event: str, **kw: Any) -> dict:
         """Create debug-level log event to assert against"""
         return self.log(logging.DEBUG, event, **kw)
 
-    def info(self, event: dict, **kw: Any) -> dict:
+    def info(self, event: str, **kw: Any) -> dict:
         """Create info-level log event to assert against"""
         return self.log(logging.INFO, event, **kw)
 
-    def warning(self, event: dict, **kw: Any) -> dict:
+    def warning(self, event: str, **kw: Any) -> dict:
         """Create warning-level log event to assert against"""
         return self.log(logging.WARNING, event, **kw)
 
-    def error(self, event: dict, **kw: Any) -> dict:
+    def error(self, event: str, **kw: Any) -> dict:
         """Create error-level log event to assert against"""
         return self.log(logging.ERROR, event, **kw)
 
-    def critical(self, event: dict, **kw: Any) -> dict:
+    def critical(self, event: str, **kw: Any) -> dict:
         """Create critical-level log event to assert against"""
         return self.log(logging.CRITICAL, event, **kw)
 
