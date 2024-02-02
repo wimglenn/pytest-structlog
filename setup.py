@@ -12,7 +12,7 @@ setup(
     license="MIT",
     install_requires=["pytest", "structlog"],
     entry_points={"pytest11": ["pytest-structlog=pytest_structlog"]},
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     classifiers=[
         "Framework :: Pytest",
         "Programming Language :: Python",
