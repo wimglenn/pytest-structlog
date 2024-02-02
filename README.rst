@@ -55,8 +55,9 @@ Then your test suite might use assertions such as shown below:
 
    # test_your_lib.py
    from your_lib import spline_reticulator
+   import pytest_structlog
 
-   def test_spline_reticulator(log):
+   def test_spline_reticulator(log: pytest_structlog.StructuredLogCapture):
        assert len(log.events) == 0
        spline_reticulator()
        assert len(log.events) == 5

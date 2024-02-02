@@ -12,12 +12,11 @@ setup(
     license="MIT",
     install_requires=["pytest", "structlog"],
     entry_points={"pytest11": ["pytest-structlog=pytest_structlog"]},
+    python_requires=">=3.6",
     classifiers=[
         "Framework :: Pytest",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
     ],
-    options={"bdist_wheel": {"universal": "1"}},
     include_package_data=True,
 )
