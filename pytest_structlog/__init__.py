@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Generator, List, Union, cast
+from typing import Any, Generator, List, Sequence, Union, cast
 
 import pytest
 import structlog
@@ -27,16 +27,16 @@ class EventList(List[EventDict]):
     interspersed throughout (i.e. A is a subsequence of B)
     """
 
-    def __ge__(self, other: List[EventDict]) -> bool:
+    def __ge__(self, other: Sequence[EventDict]) -> bool:
         return is_subseq(other, self)
 
-    def __gt__(self, other: List[EventDict]) -> bool:
+    def __gt__(self, other: Sequence[EventDict]) -> bool:
         return len(self) > len(other) and is_subseq(other, self)
 
-    def __le__(self, other: List[EventDict]) -> bool:
+    def __le__(self, other: Sequence[EventDict]) -> bool:
         return is_subseq(self, other)
 
-    def __lt__(self, other: List[EventDict]) -> bool:
+    def __lt__(self, other: Sequence[EventDict]) -> bool:
         return len(self) < len(other) and is_subseq(self, other)
 
 
@@ -55,7 +55,7 @@ def is_submap(d1: EventDict, d2: EventDict) -> bool:
     return all(d2.get(k, absent) == v for k, v in d1.items())
 
 
-def is_subseq(l1: list, l2: list) -> bool:
+def is_subseq(l1: Sequence, l2: Sequence) -> bool:
     """is every element of l1 also in l2? (non-unique and order sensitive)"""
     it = iter(l2)
     return all(d in it for d in l1)
