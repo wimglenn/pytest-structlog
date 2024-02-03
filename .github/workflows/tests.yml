@@ -39,7 +39,7 @@ jobs:
           python -m mypy .
       - name: "Run pyright testing ${{ matrix.python-version }}"
         run: |
-          # This checks that things like the py.typed bits work
+          # Pyright and mypy don't always agree, so check with both
           cd tests
           python -m pip install pyright==1.1.349
           python -m pyright .          
