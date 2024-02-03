@@ -41,5 +41,5 @@ jobs:
         run: |
           # This checks that things like the py.typed bits work
           cd tests
-          python -m pip pyright==1.1.349
+          python -m pip install pyright==1.1.349
           python -m pyright .          
