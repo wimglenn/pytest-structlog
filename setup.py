@@ -10,7 +10,7 @@ setup(
     author="Wim Glenn",
     author_email="hey@wimglenn.com",
     license="MIT",
-    install_requires=["pytest", "structlog"],
+    install_requires=["pytest", "structlog>=22.2.0"],
     entry_points={"pytest11": ["pytest-structlog=pytest_structlog"]},
     python_requires=">=3.7",
     classifiers=[
