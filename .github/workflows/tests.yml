@@ -47,8 +47,6 @@ jobs:
           python -m pip install ..
           python -m mypy .
 
-      - run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
-
       - uses: jakebailey/pyright-action@v2
         with:
           ignore-external: true
