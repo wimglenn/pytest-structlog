@@ -1,8 +1,9 @@
 import logging
 
 import pytest
-import pytest_structlog
 import structlog
+
+import pytest_structlog
 
 
 logger = structlog.get_logger("test")

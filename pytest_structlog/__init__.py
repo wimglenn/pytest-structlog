@@ -1,22 +1,22 @@
 import logging
 import os
-from typing import Any, Generator, List, Sequence, Union, cast
+from typing import Any
+from typing import cast
+from typing import Generator
+from typing import List
+from typing import Sequence
+from typing import Union
 
 import pytest
 import structlog
-from structlog.typing import EventDict, WrappedLogger, Processor
-
-try:
-    from structlog.contextvars import merge_contextvars
-    from structlog.contextvars import clear_contextvars
-except ImportError:
-    # structlog < 20.1.0
-    # use a "missing" sentinel to avoid a NameError later on
-    merge_contextvars = lambda *a, **kw: {}  # noqa
-    clear_contextvars = lambda *a, **kw: None  # noqa
+from structlog.contextvars import clear_contextvars
+from structlog.contextvars import merge_contextvars
+from structlog.typing import EventDict
+from structlog.typing import Processor
+from structlog.typing import WrappedLogger
 
 
-__version__ = "0.6"
+__version__ = "0.7"
 
 
 class EventList(List[EventDict]):

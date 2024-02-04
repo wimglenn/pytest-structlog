@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytest-structlog"
+dynamic = ["version"]
+description = "Structured logging assertions"
+classifiers = [
+    "Framework :: Pytest",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "pytest",
+    "structlog>=22.2.0",
+]
+
+[[project.authors]]
+name = "Wim Glenn"
+email = "hey@wimglenn.com"
+
+[project.license]
+text = "MIT"
+
+[project.readme]
+file = "README.rst"
+content-type = "text/x-rst; charset=UTF-8"
+
+[project.urls]
+Homepage = "https://github.com/wimglenn/pytest-structlog"
+
+[project.entry-points.pytest11]
+pytest-structlog = "pytest_structlog"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "pytest_structlog.__version__"}

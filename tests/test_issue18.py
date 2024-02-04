@@ -1,5 +1,4 @@
 import pytest
-
 import structlog
 
 import pytest_structlog
