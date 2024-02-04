@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+import pytest_structlog
 import structlog
 
 
@@ -25,49 +26,49 @@ def binding():
     log.warning("uh-oh")
 
 
-def test_capture_creates_items(log):
+def test_capture_creates_items(log: pytest_structlog.StructuredLogCapture):
     assert not log.events
     spline_reticulator()
     assert log.events
 
 
-def test_assert_without_context(log):
+def test_assert_without_context(log: pytest_structlog.StructuredLogCapture):
     spline_reticulator()
     assert log.has("reticulating splines")
 
 
-def test_assert_with_subcontext(log):
+def test_assert_with_subcontext(log: pytest_structlog.StructuredLogCapture):
     spline_reticulator()
     assert log.has("reticulating splines", n_splines=123)
 
 
-def test_assert_with_bogus_context(log):
+def test_assert_with_bogus_context(log: pytest_structlog.StructuredLogCapture):
     spline_reticulator()
     assert not log.has("reticulating splines", n_splines=0)
 
 
-def test_assert_with_all_context(log):
+def test_assert_with_all_context(log: pytest_structlog.StructuredLogCapture):
     spline_reticulator()
     assert log.has("reticulating splines", n_splines=123, level="info")
 
 
-def test_assert_with_super_context(log):
+def test_assert_with_super_context(log: pytest_structlog.StructuredLogCapture):
     spline_reticulator()
     assert not log.has("reticulating splines", n_splines=123, level="info", k="v")
 
 
-def test_configurator(log):
+def test_configurator(log: pytest_structlog.StructuredLogCapture):
     main_ish()
     assert log.has("yo", level="debug")
 
 
-def test_multiple_events(log):
+def test_multiple_events(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert log.has("dbg", k="v", level="debug")
     assert log.has("inf", k="v", kk="more context", level="info")
 
 
-def test_length(log):
+def test_length(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert len(log.events) == 3
 
@@ -79,54 +80,54 @@ d0, d1, d2 = [
 ]
 
 
-def test_membership(log):
+def test_membership(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert d0 in log.events
 
 
-def test_superset_single(log):
+def test_superset_single(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert log.events >= [d0]
 
 
-def test_superset_multi(log):
+def test_superset_multi(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert log.events >= [d0, d2]
 
 
-def test_superset_respects_ordering(log):
+def test_superset_respects_ordering(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert not log.events >= [d2, d0]
 
 
-def test_superset_multi_all(log):
+def test_superset_multi_all(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert log.events >= [d0, d1, d2]
 
 
-def test_superset_multi_strict(log):
+def test_superset_multi_strict(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert not log.events > [d0, d1, d2]
 
 
-def test_equality(log):
+def test_equality(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert log.events == [d0, d1, d2]
 
 
-def test_inequality(log):
+def test_inequality(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert log.events != [d0, {}, d1, d2]
 
 
-def test_total_ordering(log):
+def test_total_ordering(log: pytest_structlog.StructuredLogCapture):
     binding()
     assert log.events <= [d0, d1, d2, {}]
     assert log.events < [d0, d1, d2, {}]
     assert log.events > [d0, d1]
 
 
-def test_dupes(log):
+def test_dupes(log: pytest_structlog.StructuredLogCapture):
     logger.info("a")
     logger.info("a")
     logger.info("b")
@@ -145,7 +146,7 @@ def test_dupes(log):
     ]
 
 
-def test_event_factories(log):
+def test_event_factories(log: pytest_structlog.StructuredLogCapture):
     assert log.debug("debug-level", extra=True) == {"event": "debug-level", "level": "debug", "extra": True}
     assert log.info("info-level", more="yes") == {"event": "info-level", "level": "info", "more": "yes"}
     assert log.warning("warning-level", another=42) == {"event": "warning-level", "level": "warning", "another": 42}
@@ -171,5 +172,5 @@ def test_dynamic_event_factory(log, level, name):
     assert log.log(name.upper(), "dynamic-level", other=42) == expected
 
 
-def test_event_factory__bad_level_number(log):
+def test_event_factory__bad_level_number(log: pytest_structlog.StructuredLogCapture):
     assert log.log(1234, "text") == {'event': 'text', 'level': 'level 1234'}

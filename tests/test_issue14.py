@@ -1,4 +1,5 @@
 import structlog
+import pytest_structlog
 
 
 logger = structlog.get_logger("some logger")
@@ -18,7 +19,7 @@ def test_first():
     logger.warning("test")
 
 
-def test_second(log):
+def test_second(log: pytest_structlog.StructuredLogCapture):
     logger.warning("test")
     assert log.has("test")
 

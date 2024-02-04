@@ -10,14 +10,13 @@ setup(
     author="Wim Glenn",
     author_email="hey@wimglenn.com",
     license="MIT",
-    install_requires=["pytest", "structlog"],
-    py_modules=["pytest_structlog"],
+    install_requires=["pytest", "structlog>=22.2.0"],
     entry_points={"pytest11": ["pytest-structlog=pytest_structlog"]},
+    python_requires=">=3.7",
     classifiers=[
         "Framework :: Pytest",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
     ],
-    options={"bdist_wheel": {"universal": "1"}},
+    include_package_data=True,
 )
