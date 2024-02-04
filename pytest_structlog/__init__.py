@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import logging
 import os
 from typing import Any
@@ -52,57 +53,68 @@ def level_to_name(level: Union[str, int]) -> str:
 
 
 def is_submap(d1: EventDict, d2: EventDict) -> bool:
-    """is every pair from d1 also in d2? (unique and order insensitive)"""
+    """Is every pair from d1 also in d2? (unique and order insensitive)"""
     return all(d2.get(k, _absent) == v for k, v in d1.items())
 
 
 def is_subseq(l1: Sequence[Any], l2: Sequence[Any]) -> bool:
-    """is every element of l1 also in l2? (non-unique and order sensitive)"""
+    """Is every element of l1 also in l2? (non-unique and order sensitive)"""
     it = iter(l2)
     return all(d in it for d in l1)
 
 
-class StructuredLogCapture(object):
+class StructuredLogCapture:
+    """Processor which accumulates log events during testing. The log fixture
+    provided by pytest_structlog is an instance of this class."""
+
     def __init__(self) -> None:
         self.events: EventList = EventList()
 
     def process(
         self, logger: WrappedLogger, method_name: str, event_dict: EventDict
     ) -> EventDict:
+        """Captures a logging event, appending it as a dict in the event list."""
         event_dict["level"] = method_name
         self.events.append(event_dict)
         raise structlog.DropEvent
 
     def has(self, message: str, **context: Any) -> bool:
+        """Returns whether the event message has been logged, with optional
+        subcontext. Usage in test code would be with an assertion, e.g.:
+
+            assert log.has("foo")
+            assert log.has("bar", k1="v1", k2="v2")
+        """
         context["event"] = message
         return any(is_submap(context, e) for e in self.events)
 
     def log(self, level: Union[int, str], event: str, **kw: Any) -> dict[str, Any]:
-        """Create log event to assert against"""
+        """Create log event to assert against."""
         return dict(level=level_to_name(level), event=event, **kw)
 
     def debug(self, event: str, **kw: Any) -> dict[str, Any]:
-        """Create debug-level log event to assert against"""
+        """Create debug-level log event to assert against."""
         return self.log(logging.DEBUG, event, **kw)
 
     def info(self, event: str, **kw: Any) -> dict[str, Any]:
-        """Create info-level log event to assert against"""
+        """Create info-level log event to assert against."""
         return self.log(logging.INFO, event, **kw)
 
     def warning(self, event: str, **kw: Any) -> dict[str, Any]:
-        """Create warning-level log event to assert against"""
+        """Create warning-level log event to assert against."""
         return self.log(logging.WARNING, event, **kw)
 
     def error(self, event: str, **kw: Any) -> dict[str, Any]:
-        """Create error-level log event to assert against"""
+        """Create error-level log event to assert against."""
         return self.log(logging.ERROR, event, **kw)
 
     def critical(self, event: str, **kw: Any) -> dict[str, Any]:
-        """Create critical-level log event to assert against"""
+        """Create critical-level log event to assert against."""
         return self.log(logging.CRITICAL, event, **kw)
 
 
 def no_op(*args: Any, **kwargs: Any) -> None:
+    """Function used to stub out the original structlog.configure method."""
     pass
 
 
@@ -149,6 +161,7 @@ def log(
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_call(item: pytest.Item) -> Generator[None, None, None]:
+    """Prints out a section of captured structlog events on test failures."""
     yield
     events = getattr(item, "structlog_events", [])
     content = os.linesep.join([str(e) for e in events])
