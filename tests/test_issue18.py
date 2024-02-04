@@ -1,7 +1,7 @@
 import pytest
 import structlog
 
-import pytest_structlog
+from pytest_structlog import StructuredLogCapture
 
 
 logger = structlog.get_logger(__name__)
@@ -25,7 +25,7 @@ def stdlib_configure():
     )
 
 
-def test_positional_formatting(stdlib_configure, log: pytest_structlog.StructuredLogCapture):
+def test_positional_formatting(stdlib_configure, log: StructuredLogCapture):
     items_count = 2
     dt = 0.02
     logger.info("Processed %d CC items in total in %.2f seconds", items_count, dt)

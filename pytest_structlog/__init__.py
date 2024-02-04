@@ -65,7 +65,9 @@ class StructuredLogCapture(object):
     def __init__(self) -> None:
         self.events = EventList()
 
-    def process(self, logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
+    def process(
+        self, logger: WrappedLogger, method_name: str, event_dict: EventDict
+    ) -> EventDict:
         event_dict["level"] = method_name
         self.events.append(event_dict)
         raise structlog.DropEvent
@@ -104,7 +106,9 @@ def no_op(*args: Any, **kwargs: Any) -> None:
 
 
 @pytest.fixture
-def log(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Generator[StructuredLogCapture, None, None]:
+def log(
+    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+) -> Generator[StructuredLogCapture, None, None]:
     """Fixture providing access to captured structlog events. Interesting attributes:
 
         ``log.events`` a list of dicts, contains any events logged during the test
@@ -120,7 +124,7 @@ def log(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Gene
     new_processors: List[Processor] = []
     for processor in original_processors:
         if isinstance(processor, structlog.stdlib.PositionalArgumentsFormatter):
-            # if there was a positional argument formatter in there, keep it there
+            # if there was a positional argument formatter in there, keep it
             # see https://github.com/wimglenn/pytest-structlog/issues/18
             new_processors.append(processor)
         elif processor is merge_contextvars:
@@ -129,8 +133,8 @@ def log(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Gene
             new_processors.append(processor)
     new_processors.append(cap.process)
     structlog.configure(processors=new_processors, cache_logger_on_first_use=False)
-    cap.original_configure = configure = structlog.configure # type:ignore[attr-defined]
-    cap.configure_once = structlog.configure_once # type:ignore[attr-defined]
+    cap.original_configure = cfg = structlog.configure  # type:ignore[attr-defined]
+    cap.configure_once = structlog.configure_once  # type:ignore[attr-defined]
     monkeypatch.setattr("structlog.configure", no_op)
     monkeypatch.setattr("structlog.configure_once", no_op)
     request.node.structlog_events = cap.events
@@ -139,7 +143,7 @@ def log(monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Gene
     clear_contextvars()
 
     # back to original behavior
-    configure(processors=original_processors)
+    cfg(processors=original_processors)
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
