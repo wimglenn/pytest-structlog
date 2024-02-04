@@ -9,37 +9,45 @@ on:
 
 jobs:
   tests:
-    name: "Python ${{ matrix.python-version }}"
-    runs-on: "ubuntu-22.04"
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
-        python-version: ["3.7", "3.11"]
+        python-version:
+        - "3.7"
+        - "3.8"
+        - "3.9"
+        - "3.10"
+        - "3.11"
+        - "3.12"
 
     steps:
-      - uses: "actions/checkout@v3"
-      - uses: "actions/setup-python@v4"
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: "${{ matrix.python-version }}"
-      - name: "Install"
+          python-version: ${{ matrix.python-version }}
+      - name: Install
         run: |
           set -xe
           python -m pip install --editable .
-      - name: "Run tests for ${{ matrix.python-version }}"
+
+      - name: Run tests for ${{ matrix.python-version }}
         run: python -m pytest
-      - name: "Run mypy checks for ${{ matrix.python-version }}"
+
+      - name: Run mypy checks for ${{ matrix.python-version }}
         run: |
-          python -m pip install mypy==1.4.1
+          python -m pip install mypy
           python -m mypy pytest_structlog
-      - name: "Run mypy install checks for ${{ matrix.python-version }}"
+
+      - name: Run mypy install checks for ${{ matrix.python-version }}
         run: |
           # This checks that things like the py.typed bits work
           cd tests
           python -m pip install ..
           python -m mypy .
-      - name: "Run pyright testing ${{ matrix.python-version }}"
-        run: |
-          # Pyright and mypy don't always agree, so check with both
-          cd tests
-          python -m pip install pyright==1.1.349
-          python -m pyright .          
+
+      - uses: jakebailey/pyright-action@v2
+        with:
+          ignore-external: true
+          verify-types: pytest_structlog
