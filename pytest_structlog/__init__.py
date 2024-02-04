@@ -40,7 +40,7 @@ class EventList(List[EventDict]):
         return len(self) < len(other) and is_subseq(self, other)
 
 
-absent = object()
+_absent = object()
 
 
 def level_to_name(level: Union[str, int]) -> str:
@@ -52,10 +52,10 @@ def level_to_name(level: Union[str, int]) -> str:
 
 def is_submap(d1: EventDict, d2: EventDict) -> bool:
     """is every pair from d1 also in d2? (unique and order insensitive)"""
-    return all(d2.get(k, absent) == v for k, v in d1.items())
+    return all(d2.get(k, _absent) == v for k, v in d1.items())
 
 
-def is_subseq(l1: Sequence, l2: Sequence) -> bool:
+def is_subseq(l1: Sequence[Any], l2: Sequence[Any]) -> bool:
     """is every element of l1 also in l2? (non-unique and order sensitive)"""
     it = iter(l2)
     return all(d in it for d in l1)
@@ -63,7 +63,7 @@ def is_subseq(l1: Sequence, l2: Sequence) -> bool:
 
 class StructuredLogCapture(object):
     def __init__(self) -> None:
-        self.events = EventList()
+        self.events: EventList = EventList()
 
     def process(
         self, logger: WrappedLogger, method_name: str, event_dict: EventDict
@@ -76,27 +76,27 @@ class StructuredLogCapture(object):
         context["event"] = message
         return any(is_submap(context, e) for e in self.events)
 
-    def log(self, level: Union[int, str], event: str, **kw: Any) -> dict:
+    def log(self, level: Union[int, str], event: str, **kw: Any) -> dict[str, Any]:
         """Create log event to assert against"""
         return dict(level=level_to_name(level), event=event, **kw)
 
-    def debug(self, event: str, **kw: Any) -> dict:
+    def debug(self, event: str, **kw: Any) -> dict[str, Any]:
         """Create debug-level log event to assert against"""
         return self.log(logging.DEBUG, event, **kw)
 
-    def info(self, event: str, **kw: Any) -> dict:
+    def info(self, event: str, **kw: Any) -> dict[str, Any]:
         """Create info-level log event to assert against"""
         return self.log(logging.INFO, event, **kw)
 
-    def warning(self, event: str, **kw: Any) -> dict:
+    def warning(self, event: str, **kw: Any) -> dict[str, Any]:
         """Create warning-level log event to assert against"""
         return self.log(logging.WARNING, event, **kw)
 
-    def error(self, event: str, **kw: Any) -> dict:
+    def error(self, event: str, **kw: Any) -> dict[str, Any]:
         """Create error-level log event to assert against"""
         return self.log(logging.ERROR, event, **kw)
 
-    def critical(self, event: str, **kw: Any) -> dict:
+    def critical(self, event: str, **kw: Any) -> dict[str, Any]:
         """Create critical-level log event to assert against"""
         return self.log(logging.CRITICAL, event, **kw)
 
