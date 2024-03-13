@@ -27,6 +27,11 @@ def binding():
     log.warning("uh-oh")
 
 
+def i_warned_you_twice():
+    logger.warn("and you didn't listen")
+    logger.warning("now look what happened")
+
+
 def test_capture_creates_items(log: StructuredLogCapture):
     assert not log.events
     spline_reticulator()
@@ -196,5 +201,13 @@ def test_dynamic_event_factory(log, level, name):
     assert log.log(name.upper(), "dynamic-level", other=42) == expected
 
 
-def test_event_factory__bad_level_number(log: StructuredLogCapture):
+def test_event_factory_bad_level_number(log: StructuredLogCapture):
     assert log.log(1234, "text") == {"event": "text", "level": "level 1234"}
+
+
+def test_warn_warning_alias(log: StructuredLogCapture):
+    i_warned_you_twice()
+    assert log.events == [
+        {"event": "and you didn't listen", "level": "warning"},
+        {"event": "now look what happened", "level": "warning"},
+    ]
