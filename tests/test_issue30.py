@@ -26,6 +26,7 @@ def stdlib_bound_logger_configure():
                 "()": structlog.stdlib.ProcessorFormatter,
                 "processors": [
                     structlog.processors.add_log_level,
+                    structlog.processors.JSONRenderer(),
                 ],
             }
         },
@@ -47,7 +48,7 @@ def log_exception():
     try:
         1 / 0
     except ZeroDivisionError:
-        logger.exception('event_name')
+        logger.exception("event_name")
 
 
 def test_exception_level(stdlib_bound_logger_configure, log: StructuredLogCapture):
