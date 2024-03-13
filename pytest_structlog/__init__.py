@@ -18,7 +18,7 @@ from structlog.typing import Processor
 from structlog.typing import WrappedLogger
 
 
-__version__ = "0.7"
+__version__ = "0.8"
 
 
 class EventList(List[EventDict]):
@@ -74,7 +74,7 @@ class StructuredLogCapture:
         self, logger: WrappedLogger, method_name: str, event_dict: EventDict
     ) -> EventDict:
         """Captures a logging event, appending it as a dict in the event list."""
-        event_dict["level"] = method_name
+        event_dict["level"] = method_name if method_name != "exception" else "error"
         self.events.append(event_dict)
         raise structlog.DropEvent
 
