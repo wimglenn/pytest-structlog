@@ -18,7 +18,7 @@ from structlog.typing import Processor
 from structlog.typing import WrappedLogger
 
 
-__version__ = "0.8"
+__version__ = "0.9"
 
 
 class EventList(List[EventDict]):
@@ -139,6 +139,12 @@ def log(
         if isinstance(processor, structlog.stdlib.PositionalArgumentsFormatter):
             # if there was a positional argument formatter in there, keep it
             # see https://github.com/wimglenn/pytest-structlog/issues/18
+            new_processors.append(processor)
+        elif processor is structlog.processors.format_exc_info:
+            # traceback render
+            # see https://github.com/wimglenn/pytest-structlog/issues/32
+            new_processors.append(processor)
+        elif processor is getattr(structlog.processors, "dict_tracebacks", object()):
             new_processors.append(processor)
         elif processor is merge_contextvars:
             # if merging contextvars, preserve
