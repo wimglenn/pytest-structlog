@@ -1,24 +1,25 @@
 from __future__ import annotations
 
+import functools
 import logging
 import os
 from typing import Any
+from typing import Callable
 from typing import cast
 from typing import Generator
 from typing import List
+from typing import Literal
+from typing import NoReturn
 from typing import Sequence
 from typing import Union
 
 import pytest
 import structlog
+from pytest import FixtureRequest
+from pytest import MonkeyPatch
 from structlog.contextvars import clear_contextvars
-from structlog.contextvars import merge_contextvars
 from structlog.typing import EventDict
-from structlog.typing import Processor
 from structlog.typing import WrappedLogger
-
-
-__version__ = "0.9"
 
 
 class EventList(List[EventDict]):
@@ -68,13 +69,21 @@ class StructuredLogCapture:
     provided by pytest_structlog is an instance of this class."""
 
     def __init__(self) -> None:
+        self.orig_configure: Callable = structlog.configure
+        self.orig_config: dict[str, Any] = structlog.get_config()
+        self.configure_once: Callable = structlog.configure_once
         self.events: EventList = EventList()
 
-    def process(
+    def _reset(self) -> None:
+        self.orig_configure(**self.orig_config)
+        structlog.configure = self.orig_configure
+        structlog.configure_once = self.configure_once
+
+    def __call__(
         self, logger: WrappedLogger, method_name: str, event_dict: EventDict
-    ) -> EventDict:
+    ) -> NoReturn:
         """Captures a logging event, appending it as a dict in the event list."""
-        event_dict["level"] = method_name if method_name != "exception" else "error"
+        structlog.stdlib.add_log_level(logger, method_name, event_dict)
         self.events.append(event_dict)
         raise structlog.DropEvent
 
@@ -118,9 +127,70 @@ def no_op(*args: Any, **kwargs: Any) -> None:
     pass
 
 
+def _name(obj: Callable) -> str:
+    if isinstance(obj, functools.partial):
+        obj = obj.func
+    try:
+        return obj.__qualname__
+    except AttributeError:
+        return type(obj).__name__
+
+
+class Settings:
+    """Configuration of pytest-structlog plugin from cmdline / config files"""
+
+    def __init__(self) -> None:
+        self.mode: Literal["keep", "evict"] = "keep"
+        self.keep: dict[str, set[str]] = {
+            "cmdline-arg": set(),
+            "config-file": set(),
+            "default-keep-list": {
+                "add_log_level",
+                "PositionalArgumentsFormatter",
+                "ExceptionRenderer",
+                "dict_tracebacks",
+                "merge_contextvars",
+            },
+        }
+        self.evict: dict[str, set[str]] = {
+            "cmdline-arg": set(),
+            "config-file": set(),
+            "default-evict-list": {
+                "TimeStamper",
+                "ConsoleRenderer",
+                "JSONRenderer",
+            },
+        }
+
+    def use_processor(self, name: str) -> tuple[bool, str]:
+        """Should processor be used during test, according to plugin configuration?"""
+        if self.mode == "evict":
+            for reason, processor_names in self.evict.items():
+                if name in processor_names:
+                    return False, reason
+            return True, ""
+        else:
+            assert self.mode == "keep"
+            for reason, processor_names in self.keep.items():
+                if name in processor_names:
+                    return True, reason
+            return False, ""
+
+    def reset(self) -> None:
+        """Resets the state of the plugin to default."""
+        self.keep["config-file"].clear()
+        self.evict["config-file"].clear()
+        self.keep["cmdline-arg"].clear()
+        self.evict["cmdline-arg"].clear()
+        self.mode = "keep"
+
+
+settings: Settings = Settings()
+
+
 @pytest.fixture
 def log(
-    monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest
+    monkeypatch: MonkeyPatch, request: FixtureRequest
 ) -> Generator[StructuredLogCapture, None, None]:
     """Fixture providing access to captured structlog events. Interesting attributes:
 
@@ -129,40 +199,18 @@ def log(
 
     Example usage: ``assert log.has("some message", var1="extra context")``
     """
-    # save settings for later
-    original_processors = structlog.get_config().get("processors", [])
-
-    # redirect logging to log capture
-    cap = StructuredLogCapture()
-    new_processors: List[Processor] = []
-    for processor in original_processors:
-        if isinstance(processor, structlog.stdlib.PositionalArgumentsFormatter):
-            # if there was a positional argument formatter in there, keep it
-            # see https://github.com/wimglenn/pytest-structlog/issues/18
-            new_processors.append(processor)
-        elif processor is structlog.processors.format_exc_info:
-            # traceback render
-            # see https://github.com/wimglenn/pytest-structlog/issues/32
-            new_processors.append(processor)
-        elif processor is getattr(structlog.processors, "dict_tracebacks", object()):
-            new_processors.append(processor)
-        elif processor is merge_contextvars:
-            # if merging contextvars, preserve
-            # see https://github.com/wimglenn/pytest-structlog/issues/20
-            new_processors.append(processor)
-    new_processors.append(cap.process)
+    capture = StructuredLogCapture()
+    orig_processors = capture.orig_config.get("processors", [])
+    new_processors = [p for p in orig_processors if settings.use_processor(_name(p))[0]]
+    new_processors.append(capture)
     structlog.configure(processors=new_processors, cache_logger_on_first_use=False)
-    cap.original_configure = cfg = structlog.configure  # type:ignore[attr-defined]
-    cap.configure_once = structlog.configure_once  # type:ignore[attr-defined]
     monkeypatch.setattr("structlog.configure", no_op)
     monkeypatch.setattr("structlog.configure_once", no_op)
-    request.node.structlog_events = cap.events
+    request.node.structlog_events = capture.events
     clear_contextvars()
-    yield cap
+    yield capture
     clear_contextvars()
-
-    # back to original behavior
-    cfg(processors=original_processors)
+    capture._reset()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -172,3 +220,113 @@ def pytest_runtest_call(item: pytest.Item) -> Generator[None, None, None]:
     events = getattr(item, "structlog_events", [])
     content = os.linesep.join([str(e) for e in events])
     item.add_report_section("call", "structlog", content)
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register argparse-style options and ini-style config values."""
+    group = parser.getgroup("pytest-structlog")
+    group.addoption(
+        "--structlog-keep",
+        action="append",
+        metavar="PROCESSOR_NAME",
+        help="Processors to keep if configured (may be specified multiple times).",
+        default=[],
+    )
+    parser.addini(
+        name="structlog_keep",
+        help="Processors to keep if configured (list of names)",
+        type="args",
+        default=[],
+    )
+    group.addoption(
+        "--structlog-evict",
+        action="append",
+        metavar="PROCESSOR_NAME",
+        help="Processors to evict if configured (may be specified multiple times).",
+        default=[],
+    )
+    parser.addini(
+        name="structlog_evict",
+        help="Processors to evict if configured (list of names)",
+        type="args",
+        default=[],
+    )
+    explicit_setting_help = (
+        "Structlog processor list should be configured manually in test. Do not "
+        "use default settings for 'keep' or 'evict' lists."
+    )
+    group.addoption(
+        "--structlog-explicit",
+        help=explicit_setting_help,
+        action="store_true",
+    )
+    parser.addini(
+        name="structlog_explicit",
+        help=explicit_setting_help,
+        type="bool",
+    )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Perform initial plugin configuration."""
+    user_keep = config.getoption("structlog_keep") or config.getini("structlog_keep")
+    user_evict = config.getoption("structlog_evict") or config.getini("structlog_evict")
+    if user_evict and user_keep:
+        raise pytest.UsageError(
+            "--structlog-keep and --structlog-evict settings are mutually "
+            "exclusive. Specify one or the other, not both."
+        )
+    if config.getoption("structlog_explicit") or config.getini("structlog_explicit"):
+        settings.keep["default-keep-list"].clear()
+        settings.evict["default-evict-list"].clear()
+    settings.keep["cmdline-arg"].update(config.getoption("structlog_keep"))
+    settings.keep["config-file"].update(config.getini("structlog_keep"))
+    settings.evict["cmdline-arg"].update(config.getoption("structlog_evict"))
+    settings.evict["config-file"].update(config.getini("structlog_evict"))
+    if user_evict:
+        settings.mode = "evict"
+
+
+def pytest_unconfigure() -> None:
+    """Unconfigure the plugin before test process exits."""
+    settings.reset()
+
+
+def pytest_report_collectionfinish(config: pytest.Config) -> list[str]:
+    """Add post-collection information about which pre-configured structlog processors
+    are being used. These only show if verbosity is non-zero, i.e. the user passed -v
+    or -vv when running pytest."""
+    verbosity = config.get_verbosity()
+    if not verbosity:
+        return []
+    tw = config.get_terminal_writer()
+    lines = [" pytest-structlog settings ".center(tw.fullwidth, "=")]
+    if settings.mode == "keep":
+        col_mode = tw.markup("keep", green=True, bold=True)
+    else:
+        col_mode = tw.markup("evict", red=True, bold=True)
+    lines.append(f"Plugin pytest-structlog is operating in {col_mode} mode.")
+    if verbosity > 1:
+        namelists = getattr(settings, settings.mode)
+        for key, namelist in namelists.items():
+            lines.append(f"- {key}:" + (" (empty)" if not namelist else ""))
+            lines += [f"    {name}" for name in sorted(namelist)]
+    for processor in structlog.get_config().get("processors", []):
+        name = _name(processor)
+        keep, reason = settings.use_processor(name)
+        line = ["Structlog processor "]
+        if keep:
+            line.append(tw.markup(f"{name!r} is kept", green=True))
+        else:
+            line.append(tw.markup(f"{name!r} is evicted", red=True))
+        if reason:
+            line.append(f" due to {reason}")
+        else:
+            inverse_action = ["evicted", "kept"][not keep]
+            line.append(f" because no configuration {inverse_action} it")
+        if verbosity > 1:
+            line.append(f" ({processor!r})")
+        line.append(".")
+        lines.append("".join(line))
+    lines.append("=" * tw.fullwidth)
+    return lines

@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     strategy:
+      fail-fast: false
       matrix:
         python-version:
-        - "3.7"
         - "3.8"
         - "3.9"
         - "3.10"
@@ -51,3 +51,11 @@ jobs:
         with:
           ignore-external: true
           verify-types: pytest_structlog
+
+  check-package:
+    name: Build & inspect our package.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hynek/build-and-inspect-python-package@v2
