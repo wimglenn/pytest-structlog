@@ -69,14 +69,14 @@ class StructuredLogCapture:
     provided by pytest_structlog is an instance of this class."""
 
     def __init__(self) -> None:
-        self.orig_configure: Callable = structlog.configure
-        self.orig_config: dict[str, Any] = structlog.get_config()
+        self.original_configure: Callable = structlog.configure
+        self.original_config: dict[str, Any] = structlog.get_config()
         self.configure_once: Callable = structlog.configure_once
         self.events: EventList = EventList()
 
     def _reset(self) -> None:
-        self.orig_configure(**self.orig_config)
-        structlog.configure = self.orig_configure
+        self.original_configure(**self.original_config)
+        structlog.configure = self.original_configure
         structlog.configure_once = self.configure_once
 
     def __call__(
@@ -202,7 +202,7 @@ def log(
     Example usage: ``assert log.has("some message", var1="extra context")``
     """
     capture = StructuredLogCapture()
-    orig_processors = capture.orig_config.get("processors", [])
+    orig_processors = capture.original_config.get("processors", [])
     new_processors = [p for p in orig_processors if settings.use_processor(_name(p))[0]]
     new_processors.append(capture)
     structlog.configure(processors=new_processors, cache_logger_on_first_use=False)
