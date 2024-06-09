@@ -156,9 +156,11 @@ class Settings:
             "cmdline-arg": set(),
             "config-file": set(),
             "default-evict-list": {
+                "filter_by_level",
                 "TimeStamper",
                 "ConsoleRenderer",
                 "JSONRenderer",
+                "ProcessorFormatter.wrap_for_formatter",
             },
         }
 
