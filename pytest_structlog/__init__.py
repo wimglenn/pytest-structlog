@@ -8,7 +8,6 @@ from typing import Callable
 from typing import cast
 from typing import Generator
 from typing import List
-from typing import Literal
 from typing import NoReturn
 from typing import Sequence
 from typing import Union
@@ -140,7 +139,7 @@ class Settings:
     """Configuration of pytest-structlog plugin from cmdline / config files"""
 
     def __init__(self) -> None:
-        self.mode: Literal["keep", "evict"] = "keep"
+        self.mode: str = "keep"  # or "evict"
         self.keep: dict[str, set[str]] = {
             "cmdline-arg": set(),
             "config-file": set(),
@@ -298,7 +297,7 @@ def pytest_report_collectionfinish(config: pytest.Config) -> list[str]:
     """Add post-collection information about which pre-configured structlog processors
     are being used. These only show if verbosity is non-zero, i.e. the user passed -v
     or -vv when running pytest."""
-    verbosity = config.get_verbosity()
+    verbosity = config.getoption("verbose", default=0)
     if not verbosity:
         return []
     tw = config.get_terminal_writer()
