@@ -72,6 +72,7 @@ class StructuredLogCapture:
         self.original_config: dict[str, Any] = structlog.get_config()
         self.configure_once: Callable = structlog.configure_once
         self.events: EventList = EventList()
+        self._add_log_level = settings.use_processor("add_log_level")[0]
 
     def _reset(self) -> None:
         self.original_configure(**self.original_config)
@@ -82,7 +83,8 @@ class StructuredLogCapture:
         self, logger: WrappedLogger, method_name: str, event_dict: EventDict
     ) -> NoReturn:
         """Captures a logging event, appending it as a dict in the event list."""
-        structlog.stdlib.add_log_level(logger, method_name, event_dict)
+        if self._add_log_level:
+            structlog.stdlib.add_log_level(logger, method_name, event_dict)
         self.events.append(event_dict)
         raise structlog.DropEvent
 
