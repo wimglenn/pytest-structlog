@@ -150,3 +150,4 @@ You may only use "keep" or "evict" mode. It is an error to specify both.
 For complete control over which processors should be used in testing, the best way would be to add a `structlog.configure()` call directly in your `conftest.py` file and use `--structlog-explicit` (or set `structlog_explicit = true`) when running pytest to disable automatic processors selection entirely.
 
 Using `pytest -v` or `pytest -vv` you can see more details about which processors `pytest-structlog` has included or excluded during the test startup.
+The reporting of pytest-structlog's own settings can also be explicitly enabled/disabled independently of verbosity level by specifying `--structlog-settings-report always/never` (cmdline) or `structlog_settings_report` (ini).
