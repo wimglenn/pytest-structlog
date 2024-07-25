@@ -5,7 +5,6 @@ import logging
 import os
 from typing import Any
 from typing import Callable
-from typing import cast
 from typing import Generator
 from typing import List
 from typing import NoReturn
@@ -49,7 +48,7 @@ def level_to_name(level: Union[str, int]) -> str:
     """Given the name or number for a log-level, return the lower-case level name."""
     if isinstance(level, str):
         return level.lower()
-    return cast(str, logging.getLevelName(level)).lower()
+    return logging.getLevelName(level).lower()
 
 
 def is_submap(d1: EventDict, d2: EventDict) -> bool:
@@ -164,6 +163,7 @@ class Settings:
                 "ProcessorFormatter.wrap_for_formatter",
             },
         }
+        self.report: str = "auto"
 
     def use_processor(self, name: str) -> tuple[bool, str]:
         """Should processor be used during test, according to plugin configuration?"""
@@ -186,6 +186,7 @@ class Settings:
         self.keep["cmdline-arg"].clear()
         self.evict["cmdline-arg"].clear()
         self.mode = "keep"
+        self.report = "auto"
 
 
 settings: Settings = Settings()
@@ -268,12 +269,38 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help=explicit_setting_help,
         type="bool",
     )
+    settings_report_help = (
+        "Display the configured pytest-structlog settings after test collection."
+        "Default (auto) will display the report when pytest is running with increased "
+        "verbosity (-v)."
+    )
+    group.addoption(
+        "--structlog-settings-report",
+        help=settings_report_help,
+        choices=["always", "never", "auto"],
+    )
+    parser.addini(
+        name="structlog_settings_report",
+        help=settings_report_help,
+        type="string",
+        default="auto",
+    )
 
 
 def pytest_configure(config: pytest.Config) -> None:
     """Perform initial plugin configuration."""
     user_keep = config.getoption("structlog_keep") or config.getini("structlog_keep")
     user_evict = config.getoption("structlog_evict") or config.getini("structlog_evict")
+    settings_report = config.getoption("structlog_settings_report")
+    if settings_report is None:
+        settings_report = config.getini("structlog_settings_report")
+        if settings_report not in ("always", "never", "auto"):
+            raise pytest.UsageError(
+                f"structlog_settings_report configuration value must be one of "
+                f"'always', 'never', or 'auto' (got: {settings_report!r})"
+            )
+    settings.report = settings_report
+    assert settings_report in ("always", "never", "auto"), settings_report
     if user_evict and user_keep:
         raise pytest.UsageError(
             "--structlog-keep and --structlog-evict settings are mutually "
@@ -299,8 +326,10 @@ def pytest_report_collectionfinish(config: pytest.Config) -> list[str]:
     """Add post-collection information about which pre-configured structlog processors
     are being used. These only show if verbosity is non-zero, i.e. the user passed -v
     or -vv when running pytest."""
+    if settings.report == "never":
+        return []
     verbosity = config.getoption("verbose", default=0)
-    if not verbosity:
+    if settings.report == "auto" and not verbosity:
         return []
     tw = config.get_terminal_writer()
     lines = [" pytest-structlog settings ".center(tw.fullwidth, "=")]

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytest-structlog"
-version = "1.0"
+version = "1.1"
 description = "Structured logging assertions"
 readme = "README.md"
 classifiers = [
@@ -12,7 +12,7 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-requires-python = ">= 3.7"
+requires-python = ">= 3.8"
 dependencies = [
     "pytest",
     "structlog>=22.2.0",
