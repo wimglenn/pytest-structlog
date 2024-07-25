@@ -163,7 +163,7 @@ class Settings:
                 "ProcessorFormatter.wrap_for_formatter",
             },
         }
-        self.report = "auto"
+        self.report: str = "auto"
 
     def use_processor(self, name: str) -> tuple[bool, str]:
         """Should processor be used during test, according to plugin configuration?"""
