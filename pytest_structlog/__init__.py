@@ -5,7 +5,6 @@ import logging
 import os
 from typing import Any
 from typing import Callable
-from typing import cast
 from typing import Generator
 from typing import List
 from typing import NoReturn
@@ -49,7 +48,7 @@ def level_to_name(level: Union[str, int]) -> str:
     """Given the name or number for a log-level, return the lower-case level name."""
     if isinstance(level, str):
         return level.lower()
-    return cast(str, logging.getLevelName(level)).lower()
+    return logging.getLevelName(level).lower()
 
 
 def is_submap(d1: EventDict, d2: EventDict) -> bool:
