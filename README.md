@@ -1,6 +1,5 @@
-![actions](https://github.com/wimglenn/pytest-structlog/actions/workflows/tests.yml/badge.svg)
-![pypi](https://img.shields.io/pypi/v/pytest-structlog.svg)
-![pyversions](https://img.shields.io/pypi/pyversions/pytest-structlog.svg)
+[![actions](https://github.com/wimglenn/pytest-structlog/actions/workflows/tests.yml/badge.svg)](https://github.com/wimglenn/pytest-structlog/actions/workflows/tests.yml)
+[![pypi](https://img.shields.io/pypi/v/pytest-structlog.svg)](https://pypi.org/project/pytest-structlog/)
 ![womm](https://cdn.rawgit.com/nikku/works-on-my-machine/v0.2.0/badge.svg)
 
 # pytest-structlog
