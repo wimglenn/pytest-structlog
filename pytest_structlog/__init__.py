@@ -97,6 +97,16 @@ class StructuredLogCapture:
         context["event"] = message
         return any(is_submap(context, e) for e in self.events)
 
+    def count(self, message: str, **context: Any) -> int:
+        """Returns the number of messages logged, with optional
+        subcontext. Usage in test code would be with an assertion, e.g.:
+
+            assert log.count("foo") == 2
+            assert log.count("bar", k1="v1", k2="v2") == 1
+        """
+        context["event"] = message
+        return sum(1 for e in self.events if is_submap(context, e))
+
     def log(self, level: Union[int, str], event: str, **kw: Any) -> dict[str, Any]:
         """Create log event to assert against."""
         return dict(level=level_to_name(level), event=event, **kw)
