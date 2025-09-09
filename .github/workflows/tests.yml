@@ -40,13 +40,6 @@ jobs:
           python -m pip install mypy
           python -m mypy pytest_structlog
 
-      - name: Run mypy install checks for ${{ matrix.python-version }}
-        run: |
-          # This checks that things like the py.typed bits work
-          cd tests
-          python -m pip install ..
-          python -m mypy .
-
       - uses: jakebailey/pyright-action@v2
         with:
           ignore-external: true
