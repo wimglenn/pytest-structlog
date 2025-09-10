@@ -31,7 +31,7 @@ jobs:
         run: pip install --editable . --config-settings editable_mode=strict
 
       - name: Run tests for ${{ matrix.python-version }}
-        run: python -m pytest
+        run: pytest
 
       - name: Run mypy checks for ${{ matrix.python-version }}
         run: |

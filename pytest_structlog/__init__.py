@@ -105,7 +105,7 @@ class StructuredLogCapture:
             assert log.count("bar", k1="v1", k2="v2") == 1
         """
         context["event"] = message
-        return sum(1 for e in self.events if is_submap(context, e))
+        return sum(is_submap(context, e) for e in self.events)
 
     def log(self, level: Union[int, str], event: str, **kw: Any) -> dict[str, Any]:
         """Create log event to assert against."""
