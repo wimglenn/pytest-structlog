@@ -41,10 +41,12 @@ Then your test suite might use assertions such as shown below:
 
 ``` python
 # test_your_lib.py
-from your_lib import spline_reticulator
-import pytest_structlog
+from pytest_structlog import StructuredLogCapture
 
-def test_spline_reticulator(log: pytest_structlog.StructuredLogCapture):
+from your_lib import spline_reticulator
+
+
+def test_spline_reticulator(log: StructuredLogCapture):
     assert len(log.events) == 0
     spline_reticulator()
     assert len(log.events) == 5
@@ -99,6 +101,9 @@ def test_spline_reticulator(log: pytest_structlog.StructuredLogCapture):
         {"event": "processing", "level": "debug", "spline": 2},
         {"event": "processing", "level": "debug", "spline": 0},
     ] <= log.events
+
+    # count of events
+    assert log.count("processing") == 3
 ```
 
 ## Advanced configuration

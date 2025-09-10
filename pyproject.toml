@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytest-structlog"
-version = "1.1"
+version = "1.2"
 description = "Structured logging assertions"
 readme = "README.md"
 classifiers = [
@@ -44,3 +44,4 @@ warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
 strict_equality = true
+exclude = "tests"
