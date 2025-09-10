@@ -17,13 +17,11 @@ dependencies = [
     "pytest",
     "structlog>=22.2.0",
 ]
+license = "MIT"
 
 [[project.authors]]
 name = "Wim Glenn"
 email = "hey@wimglenn.com"
-
-[project.license]
-text = "MIT"
 
 [project.urls]
 Homepage = "https://github.com/wimglenn/pytest-structlog"
