@@ -37,7 +37,7 @@ jobs:
           pip install mypy
           mypy pytest_structlog
 
-      - uses: jakebailey/pyright-action@v2
+      - uses: jakebailey/pyright-action@v3
         with:
           ignore-external: true
           verify-types: pytest_structlog
